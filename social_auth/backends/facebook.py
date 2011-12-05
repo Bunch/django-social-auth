@@ -101,6 +101,9 @@ class FacebookAuth(BaseOAuth2):
             error = self.data.get('error') or 'unknown error'
             raise ValueError('Authentication error: %s' % error)
 
+    def token_is_valid(self, access_token):
+        return self.user_data(access_token) is not None
+
     @classmethod
     def enabled(cls):
         """Return backend enabled status by checking basic settings"""

@@ -132,6 +132,16 @@ class SocialAuthBackend(ModelBackend):
             'details': details,
             'is_new': False,
         })
+
+        # Store access tokens in the session for later use validation
+        if 'access_token' in response:
+            if not 'social_auth_data' in request.session:
+                request.session['social_auth_data'] = {}
+
+            request.session['social_auth_data'][self.name] = {
+                'access_token': response.get('access_token')
+            }
+
         for name in PIPELINE:
             mod_name, func_name = name.rsplit('.', 1)
             try:
@@ -436,6 +446,9 @@ class BaseOAuth(BaseAuth):
         super(BaseOAuth, self).__init__(request, redirect)
         self.redirect_uri = self.request.build_absolute_uri(self.redirect)
 
+    def token_is_valid(self, access_token):
+        """Validate if an access token may still be used"""
+        raise NotImplementedError('Implement in subclass')
 
 class ConsumerBasedOAuth(BaseOAuth):
     """Consumer based mechanism OAuth authentication, fill the needed
