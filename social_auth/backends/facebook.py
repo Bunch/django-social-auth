@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 import cgi
 from urllib import urlencode
-from urllib2 import urlopen
+from urllib2 import urlopen, HTTPError
 
 from django.conf import settings
 from django.utils import simplejson
@@ -102,7 +102,10 @@ class FacebookAuth(BaseOAuth2):
             raise ValueError('Authentication error: %s' % error)
 
     def token_is_valid(self, access_token):
-        return self.user_data(access_token) is not None
+        try:
+            return self.user_data(access_token) is not None
+        except HTTPError:
+            return False
 
     @classmethod
     def enabled(cls):
