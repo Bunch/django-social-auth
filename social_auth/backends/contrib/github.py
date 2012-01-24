@@ -48,12 +48,17 @@ class GithubAuth(BaseOAuth):
     """Github OAuth mechanism"""
     AUTH_BACKEND = GithubBackend
 
-    def auth_url(self):
+    def auth_url(self, extra_scope=''):
         """Returns redirect url"""
         args = {'client_id': settings.GITHUB_APP_ID,
                 'redirect_uri': self.redirect_uri}
+
+        scope = set(extra_scope.split(','))
         if hasattr(settings, 'GITHUB_EXTENDED_PERMISSIONS'):
-            args['scope'] = ','.join(settings.GITHUB_EXTENDED_PERMISSIONS)
+            scope = scope.union(set(settings.GITHUB_EXTENDED_PERMISSIONS))
+        if scope:
+            args['scope'] = ','.join(scope)
+
         args.update(self.auth_extra_arguments())
         return GITHUB_AUTHORIZATION_URL + '?' + urllib.urlencode(args)
 

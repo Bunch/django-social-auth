@@ -130,8 +130,8 @@ def disconnect(request, backend, association_id=None):
 def auth_process(request, backend):
     """Authenticate using social backend"""
     # Save any defined redirect_to value into session
+    data = request.POST if request.method == 'POST' else request.GET
     if REDIRECT_FIELD_NAME in request.REQUEST:
-        data = request.POST if request.method == 'POST' else request.GET
         if REDIRECT_FIELD_NAME in data:
             # Check and sanitize a user-defined GET/POST redirect_to field value.
             redirect = data[REDIRECT_FIELD_NAME]
@@ -141,7 +141,7 @@ def auth_process(request, backend):
             request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
 
     if backend.uses_redirect:
-        return HttpResponseRedirect(backend.auth_url())
+        return HttpResponseRedirect(backend.auth_url(data.get('extra_scope', '')))
     else:
         return HttpResponse(backend.auth_html(),
                             content_type='text/html;charset=UTF-8')

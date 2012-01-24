@@ -307,7 +307,7 @@ class BaseAuth(object):
         self.data = request.REQUEST
         self.redirect = redirect
 
-    def auth_url(self):
+    def auth_url(self, extra_scope):
         """Must return redirect URL to auth provider"""
         raise NotImplementedError('Implement in subclass')
 
@@ -351,8 +351,9 @@ class OpenIdAuth(BaseAuth):
     """OpenId process handling"""
     AUTH_BACKEND = OpenIDBackend
 
-    def auth_url(self):
+    def auth_url(self, extra_scope):
         """Return auth URL returned by service"""
+        # XXX extra_scope not implemented for OpenId
         openid_request = self.setup_request(self.auth_extra_arguments())
         # Construct completion URL, including page we should redirect to
         return_to = self.request.build_absolute_uri(self.redirect)
@@ -468,6 +469,7 @@ class ConsumerBasedOAuth(BaseOAuth):
 
     def auth_url(self):
         """Return redirect url"""
+        # XXX extra_scope not implemented for consumer based OAuth
         token = self.unauthorized_token()
         name = self.AUTH_BACKEND.name + 'unauthorized_token_name'
         self.request.session[name] = token.to_string()
@@ -562,14 +564,15 @@ class BaseOAuth2(BaseOAuth):
     SCOPE_SEPARATOR = ' '
     RESPONSE_TYPE = 'code'
 
-    def auth_url(self):
+    def auth_url(self, extra_scope=''):
         """Return redirect url"""
         client_id, client_secret = self.get_key_and_secret()
         args = {'client_id': client_id, 'redirect_uri': self.redirect_uri}
 
-        scope = self.get_scope()
+        scope = set(extra_scope.split(self.SCOPE_SEPARATOR))
+        scope = scope.union(set(self.get_scope()))
         if scope:
-            args['scope'] = self.SCOPE_SEPARATOR.join(self.get_scope())
+            args['scope'] = self.SCOPE_SEPARATOR.join(scope)
         if self.RESPONSE_TYPE:
             args['response_type'] = self.RESPONSE_TYPE
 
