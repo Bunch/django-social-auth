@@ -26,7 +26,7 @@ def social_login_required(backend_name=None):
         @wraps(function)
         def wrapper(request, *args, **kwargs):
             login_url = reverse('socialauth_begin', args=(backend_name,))
-            login_url += '?'+urlencode({ 'next': request.path })
+            login_url += '?'+urlencode({ 'next': request.get_full_path() })
 
             try:
                 access_token = request.session.get('social_auth_data')[backend_name]['access_token']
