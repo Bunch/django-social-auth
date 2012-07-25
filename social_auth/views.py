@@ -13,6 +13,7 @@ from functools import wraps
 from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponse, \
                         HttpResponseServerError
+from django.utils.http import urlencode
 from django.core.urlresolvers import reverse
 from django.contrib.auth import login, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
@@ -130,18 +131,24 @@ def disconnect(request, backend, association_id=None):
 def auth_process(request, backend):
     """Authenticate using social backend"""
     # Save any defined redirect_to value into session
-    data = request.POST if request.method == 'POST' else request.GET
+    data = request.POST.copy() if request.method == 'POST' else request.GET.copy()
     if REDIRECT_FIELD_NAME in request.REQUEST:
         if REDIRECT_FIELD_NAME in data:
             # Check and sanitize a user-defined GET/POST redirect_to field value.
-            redirect = data[REDIRECT_FIELD_NAME]
+            redirect = data.pop(REDIRECT_FIELD_NAME)[0]
 
             if SANITIZE_REDIRECTS:
                 redirect = sanitize_redirect(request.get_host(), redirect)
             request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
 
     if backend.uses_redirect:
-        return HttpResponseRedirect(backend.auth_url(data.get('extra_scope', '')))
+        query = urlencode(data)
+        auth_url = backend.auth_url(data.get('extra_scope', ''))
+
+        if query:
+            auth_url += "&" + query
+
+        return HttpResponseRedirect(auth_url)
     else:
         return HttpResponse(backend.auth_html(),
                             content_type='text/html;charset=UTF-8')
