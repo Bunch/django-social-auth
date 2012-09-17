@@ -467,7 +467,7 @@ class ConsumerBasedOAuth(BaseOAuth):
     SETTINGS_KEY_NAME = ''
     SETTINGS_SECRET_NAME = ''
 
-    def auth_url(self):
+    def auth_url(self, extra_scope):
         """Return redirect url"""
         # XXX extra_scope not implemented for consumer based OAuth
         token = self.unauthorized_token()
