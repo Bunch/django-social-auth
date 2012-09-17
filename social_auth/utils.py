@@ -21,7 +21,7 @@ def sanitize_log_data(secret, data=None, leave_characters=4):
     return replace_secret
 
 
-def sanitize_redirect(host, redirect_to):
+def sanitize_redirect(host, redirect_to, schemes=[]):
     """
     Given the hostname and an untrusted URL to redirect to,
     this method tests it to make sure it isn't garbage/harmful
@@ -48,9 +48,12 @@ def sanitize_redirect(host, redirect_to):
 
     # Heavier security check, don't allow redirection to a different host.
     try:
-        netloc = urlparse.urlparse(redirect_to)[1]
+        (scheme, netloc, params, path, query, fragment) = urlparse.urlparse(redirect_to)
     except TypeError:  # not valid redirect_to value
         return None
+
+    if scheme in schemes:
+        return redirect_to
 
     if netloc and netloc != host:
         return None

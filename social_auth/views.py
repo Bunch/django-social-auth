@@ -42,6 +42,7 @@ SESSION_EXPIRATION = _setting('SOCIAL_AUTH_SESSION_EXPIRATION', True)
 BACKEND_ERROR_REDIRECT = _setting('SOCIAL_AUTH_BACKEND_ERROR_URL',
                                   LOGIN_ERROR_URL)
 SANITIZE_REDIRECTS = _setting('SOCIAL_AUTH_SANITIZE_REDIRECTS', True)
+AUTHORIZED_SCHEMES = _setting('SOCIAL_AUTH_REDIRECT_SCHEMES', [])
 
 
 def dsa_view(redirect_name=None):
@@ -138,7 +139,7 @@ def auth_process(request, backend):
             redirect = data.pop(REDIRECT_FIELD_NAME)[0]
 
             if SANITIZE_REDIRECTS:
-                redirect = sanitize_redirect(request.get_host(), redirect)
+                redirect = sanitize_redirect(request.get_host(), redirect, AUTHORIZED_SCHEMES)
             request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
 
     if backend.uses_redirect:
