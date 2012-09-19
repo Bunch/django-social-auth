@@ -85,9 +85,12 @@ def update_user_details(backend, details, response, user, is_new=False, *args, *
     changed = False  # flag to track changes
 
     warn_setting('SOCIAL_AUTH_CHANGE_SIGNAL_ONLY', 'update_user_details')
+    warn_setting('SOCIAL_AUTH_UPDATE_EXISTING_USERS', 'update_user_details')
 
     # check if values update should be left to signals handlers only
-    if not getattr(settings, 'SOCIAL_AUTH_CHANGE_SIGNAL_ONLY', False):
+    should_change = not getattr(settings, 'SOCIAL_AUTH_CHANGE_SIGNAL_ONLY', False)
+    should_change &= is_new or getattr(settings, 'SOCIAL_AUTH_UPDATE_EXISTING_USERS', True)
+    if should_change:
         for name, value in details.iteritems():
             # do not update username, it was already generated
             if name == USERNAME:
