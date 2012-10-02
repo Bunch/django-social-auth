@@ -41,6 +41,13 @@ class TwitterBackend(OAuthBackend):
         except:
             first_name = response['name']
             last_name = ''
+
+        # Capitalize first and last name
+        if first_name:
+            first_name = first_name[0].upper() + first_name[1:]
+        if last_name:
+            last_name = last_name[0].upper() + last_name[1:]
+
         return {USERNAME: response['screen_name'],
                 'email': '',  # not supplied
                 'fullname': response['name'],
