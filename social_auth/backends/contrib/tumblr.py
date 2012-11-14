@@ -32,7 +32,7 @@ class TumblrBackend(OAuthBackend):
             USERNAME: user_info['name'],
             'email': '',
             'fullname': '',
-            'first_name': user_info['name'],
+            'first_name': '',
             'last_name': ''
         }
 
