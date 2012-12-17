@@ -1,44 +1,41 @@
+from functools import wraps
+
 from django.core.urlresolvers import reverse
-from django.utils.http import urlencode
-from django.shortcuts import redirect
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+
 from social_auth.backends import get_backend
-from social_auth.views import COMPLETE_URL_NAME
+from social_auth.exceptions import WrongBackend
+from social_auth.utils import setting
 
-try:
-    from functools import wraps
-except ImportError:
-    def wraps(wrapped, assigned=('__module__', '__name__', '__doc__'),
-              updated=('__dict__',)):
-        def inner(wrapper):
-            for attr in assigned:
-                setattr(wrapper, attr, getattr(wrapped, attr))
-            for attr in updated:
-                getattr(wrapper, attr).update(getattr(wrapped, attr, {}))
-            return wrapper
-        return inner
 
-def social_login_required(backend_name=None):
+def dsa_view(redirect_name=None):
+    """Decorate djangos-social-auth views. Will check and retrieve backend
+    or return HttpResponseServerError if backend is not found.
+
+        redirect_name parameter is used to build redirect URL used by backend.
     """
-    Decorator for views that checks that the user is logged in, redirecting
-    to the log-in page if necessary.
-    """
-    def decorator(function):
-        @wraps(function)
-        def wrapper(request, *args, **kwargs):
-            login_url = reverse('socialauth_begin', args=(backend_name,))
-            login_url += '?'+urlencode({ 'next': request.get_full_path() })
-
-            try:
-                access_token = request.session.get('social_auth_data')[backend_name]['access_token']
-            except (TypeError, KeyError):
-                return redirect(login_url)
-
-            # If the token is invalid, redirect to login
-            backend = get_backend(backend_name, request, login_url)
-            if backend.token_is_valid(access_token):
-                return function(request, *args, **kwargs)
+    def dec(func):
+        @wraps(func)
+        def wrapper(request, backend, *args, **kwargs):
+            if redirect_name:
+                redirect = reverse(redirect_name, args=(backend,))
             else:
-                return redirect(login_url)
-
+                redirect = request.path
+            request.social_auth_backend = get_backend(backend, request,
+                                                      redirect)
+            if request.social_auth_backend is None:
+                raise WrongBackend(backend)
+            return func(request, request.social_auth_backend, *args, **kwargs)
         return wrapper
-    return decorator
+    return dec
+
+
+def disconnect_view(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        return func(request, *args, **kwargs)
+
+    if setting('SOCIAL_AUTH_FORCE_POST_DISCONNECT'):
+        wrapper = require_POST(csrf_protect(wrapper))
+    return wrapper

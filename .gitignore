@@ -1,7 +1,7 @@
 *.pyc
 *.DS_STORE
 .*.sw[po]
-test.db
+test*.db
 local_settings.py
 build/
 dist/
@@ -11,3 +11,15 @@ env/
 doc/_build
 example/templates/script*.html
 contrib/tests/test_settings.py
+*.ipr
+*.iws
+*.DS_Store
+Django-social-auth.iml
+tags
+Vagrantfile
+.vagrant
+.*project
+.settings
+.coverage
+settings.js
+fabfile.py
