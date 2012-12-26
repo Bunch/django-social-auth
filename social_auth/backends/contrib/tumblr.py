@@ -50,7 +50,10 @@ class TumblrAuth(ConsumerBasedOAuth):
 
     def user_data(self, access_token):
         request = self.oauth_request(access_token, TUMBLR_CHECK_AUTH)
-        json = self.fetch_response(request)
+        try:
+            json = self.fetch_response(request)
+        except IOError:
+            return None
         try:
             return simplejson.loads(json)
         except ValueError:
