@@ -634,6 +634,9 @@ class ConsumerBasedOAuth(BaseOAuth):
         """Return redirect url"""
         # XXX extra_scope not implemented for consumer based OAuth
         token = self.unauthorized_token()
+        if not token:
+            raise AuthTokenError(self, 'Failed to get unauthorized token')
+
         name = self.AUTH_BACKEND.name + 'unauthorized_token_name'
         if not isinstance(self.request.session.get(name), list):
             self.request.session[name] = []

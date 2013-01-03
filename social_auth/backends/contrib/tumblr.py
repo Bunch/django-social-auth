@@ -5,8 +5,7 @@ Tumblr OAuth support.
 from oauth.oauth import OAuthToken as Token
 from oauth.oauth import OAuthRequest
 from oauth.oauth import OAuthSignatureMethod_HMAC_SHA1 as SignatureMethod_HMAC_SHA1
-from urllib import urlencode
-from urllib import urlopen
+from urllib import urlencode, urlopen
 from django.utils import simplejson
 from social_auth.backends import ConsumerBasedOAuth
 from social_auth.backends import OAuthBackend
@@ -62,7 +61,11 @@ class TumblrAuth(ConsumerBasedOAuth):
     def unauthorized_token(self):
         request = self.oauth_request(token=None, url=self.REQUEST_TOKEN_URL)
         response = self.fetch_response(request)
-        return Token.from_string(response)
+
+        if response:
+            return Token.from_string(response)
+        else:
+            return None
 
     def oauth_request(self, token, url, extra_params=None):
         params = {'oauth_callback': self.redirect_uri}
@@ -80,8 +83,12 @@ class TumblrAuth(ConsumerBasedOAuth):
 
     def fetch_response(self, request):
         """Executes request and fetchs service response"""
-        response = urlopen(request.to_url())
-        return response.read()
+        try:
+            response = urlopen(request.to_url())
+        except IOError:
+            return None
+        else:
+            return response.read()
 
 
 BACKENDS = {
