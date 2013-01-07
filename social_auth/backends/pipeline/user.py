@@ -67,21 +67,13 @@ def update_user_details(backend, details, response, user=None, is_new=False,
     if should_change:
         for name, value in details.iteritems():
             # do not update username, it was already generated
-            if name == USERNAME:
+            # do not update configured fields if user already existed
+            if name in (USERNAME, 'id', 'pk') or (not is_new and
+                name in setting('SOCIAL_AUTH_PROTECTED_USER_FIELDS', [])):
                 continue
             if value and value != getattr(user, name, None):
                 setattr(user, name, value)
                 changed = True
-
-    for name, value in details.iteritems():
-        # do not update username, it was already generated
-        # do not update configured fields if user already existed
-        if name in (USERNAME, 'id', 'pk') or (not is_new and
-            name in setting('SOCIAL_AUTH_PROTECTED_USER_FIELDS', [])):
-            continue
-        if value and value != getattr(user, name, None):
-            setattr(user, name, value)
-            changed = True
 
     # Fire a pre-update signal sending current backend instance,
     # user instance (created or retrieved from database), service
