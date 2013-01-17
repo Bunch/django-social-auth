@@ -15,6 +15,8 @@ from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
 from django.utils.functional import SimpleLazyObject
 
+from social_auth.exceptions import ConnectionError
+
 
 try:
     random = random.SystemRandom()
@@ -254,7 +256,10 @@ def dsa_urlopen(*args, **kwargs):
     timeout = setting('SOCIAL_AUTH_URLOPEN_TIMEOUT')
     if timeout and 'timeout' not in kwargs:
         kwargs['timeout'] = timeout
-    return urlopen(*args, **kwargs)
+    try:
+        return urlopen(*args, **kwargs)
+    except:
+        raise ConnectionError
 
 
 def get_backend_name(backend):

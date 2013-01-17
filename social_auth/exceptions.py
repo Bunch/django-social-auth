@@ -28,6 +28,12 @@ class StopPipeline(SocialAuthBaseException):
         return u'Stop pipeline'
 
 
+class ConnectionError(SocialAuthBaseException):
+    """Failure to connect with a backend."""
+    def __unicode__(self):
+        return u'Error communicating with external service'
+
+
 class AuthException(SocialAuthBaseException):
     """Auth process exception."""
     def __init__(self, backend, *args, **kwargs):
