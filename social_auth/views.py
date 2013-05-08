@@ -77,7 +77,7 @@ def disconnect(request, backend, association_id=None):
 def auth_process(request, backend):
     """Authenticate using social backend"""
     # Save any defined next value into session
-    data = request.POST if request.method == 'POST' else request.GET
+    data = (request.POST if request.method == 'POST' else request.GET).dict()
     if REDIRECT_FIELD_NAME in data:
         # Check and sanitize a user-defined GET/POST next field value
         redirect = data[REDIRECT_FIELD_NAME]
