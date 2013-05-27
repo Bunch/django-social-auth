@@ -720,7 +720,10 @@ class ConsumerBasedOAuth(BaseOAuth):
     def access_token(self, token):
         """Return request for access token value"""
         request = self.oauth_request(token, self.ACCESS_TOKEN_URL)
-        return Token.from_string(self.fetch_response(request))
+        try:
+            return Token.from_string(self.fetch_response(request))
+        except TypeError:
+            raise AuthException(self, 'Couldn\'t get a token')
 
     @property
     def consumer(self):
