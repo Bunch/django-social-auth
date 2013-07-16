@@ -118,7 +118,7 @@ class UserSocialAuthMixin(object):
         try:
             return cls.user_model().objects.get(pk=pk)
         except cls.user_model().DoesNotExist:
-            return None
+            raise
 
     @classmethod
     def get_user_by_email(cls, email):
